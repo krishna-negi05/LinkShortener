@@ -18,7 +18,7 @@ const Footer = () => {
         align="center"
         sx={{ width: "100%", backgroundColor:'#2196f3' }}
       >
-        Made with <span>&#10084;</span> by Lakshan Rukantha
+        Made with <span>&#10084;</span> by Krishna Negi
       </Typography>
     </Box>
   );
