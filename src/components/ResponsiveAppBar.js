@@ -1,130 +1,166 @@
-import React, { useState } from "react";
+import * as React from "react";
+import "./Theme.css";
+import { useState, useEffect } from "react";
+import AppBar from "@mui/material/AppBar";
 import Box from "@mui/material/Box";
-import axios from "axios";
-import Swal from "sweetalert2";
-import TextField from "@mui/material/TextField";
+import Toolbar from "@mui/material/Toolbar";
+import IconButton from "@mui/material/IconButton";
+import Typography from "@mui/material/Typography";
+import Menu from "@mui/material/Menu";
+import MenuIcon from "@mui/icons-material/Menu";
+import Container from "@mui/material/Container";
+import LightModeIcon from "@mui/icons-material/LightMode";
+import DarkModeIcon from "@mui/icons-material/DarkMode";
 import Button from "@mui/material/Button";
-import "./TextBox.css";
+import Tooltip from "@mui/material/Tooltip";
+import MenuItem from "@mui/material/MenuItem";
 
-const FullWidthTextField = () => {
-  const [url, setUrl] = useState("");
-  const [btnText, setBtnText] = useState("Shorten");
-  const [customText, setCustomText] = useState(""); // For custom alias
+const pages = ["Home", "Pricing", "About"];
 
-  const handleSubmit = (event) => {
-    event.preventDefault();
+const ResponsiveAppBar = () => {
+  function useLocalStorageState(key, initialValue) {
+    const [value, setValue] = useState(() => {
+      const persistedValue = localStorage.getItem(key);
+      return persistedValue !== null ? persistedValue : initialValue;
+    });
 
-    // Set loading state for UI
-    setUrl("Loading...");
+    useEffect(() => {
+      localStorage.setItem(key, value);
+    }, [key, value]);
 
-    // Construct the request URL for is.gd API
-    let apiUrl = `https://is.gd/create.php?format=simple&url=${encodeURIComponent(url)}`;
-    if (customText) {
-      apiUrl += `&shorturl=${encodeURIComponent(customText)}`;
+    return [value, setValue];
+  }
+  const [mode, setMode] = useLocalStorageState("lightMode");
+
+  useEffect(() => {
+    document.body.className = mode;
+  }, [mode]);
+
+  function toggleMode() {
+    setClick(!click);
+    if (click === true) {
+      setMode("lightMode");
+    } else {
+      setMode("darkMode");
     }
+  }
+  const [anchorElNav, setAnchorElNav] = React.useState(null);
 
-    // Make the API request
-    axios
-      .get(apiUrl)
-      .then((response) => {
-        // On success, set the shortened URL
-        setUrl(response.data);
-        setBtnText("Copy To Clipboard");
-      })
-      .catch((error) => {
-        // On error, show alert
-        Swal.fire({
-          icon: "error",
-          title: "Oops...",
-          text: "Invalid URL! Please check the URL and try again.",
-        });
-        setUrl(""); // Reset URL field on error
-      });
+  const handleOpenNavMenu = (event) => {
+    setAnchorElNav(event.currentTarget);
   };
 
-  const handleChange = (e) => {
-    setUrl(e.target.value);
-    if (e.target.value !== url) {
-      setBtnText("Shorten");
-    }
+  const handleCloseNavMenu = () => {
+    setAnchorElNav(null);
   };
 
-  const handleCustomTextChange = (e) => {
-    setCustomText(e.target.value);
-  };
-
-  const handleCopy = () => {
-    navigator.clipboard.writeText(url);
-    setBtnText("Copied!");
-  };
+  const [click, setClick] = React.useState(false);
 
   return (
-    <Box className="text-box-container">
-      <TextField
-        className="url-area"
-        fullWidth
-        id="fullWidth"
-        value={url}
-        onChange={handleChange}
-        placeholder="Paste long url and shorten it"
-        size="small"
-        helperText="Ex: http://example.com/"
-        sx={{
-          [`& fieldset`]: {
-            borderRadius: 50,
-          },
-        }}
-      />
-      <TextField
-        className="custom-text-field"
-        fullWidth
-        id="customText"
-        value={customText}
-        onChange={handleCustomTextChange}
-        placeholder="Custom alias (optional)"
-        size="small"
-        sx={{
-          [`& fieldset`]: {
-            borderRadius: 50,
-          },
-        }}
-      />
-      <Box className="btn-box">
-        <Button
-          className="btn"
-          onClick={handleSubmit}
-          variant="contained"
-          style={{
-            borderRadius: 50,
-            paddingTop: 8,
-            paddingBottom: 8,
-            paddingLeft: 30,
-            paddingRight: 30,
-          }}
-        >
-          {btnText}
-        </Button>
-      </Box>
-      {url && btnText === "Copy To Clipboard" && (
-        <Box className="copy-box">
-          <Button
-            className="btn"
-            onClick={handleCopy}
-            variant="contained"
-            style={{
-              borderRadius: 50,
-              paddingTop: 8,
-              paddingBottom: 8,
-              paddingLeft: 30,
-              paddingRight: 30,
+    <AppBar position="fixed">
+      <Container maxWidth="xl">
+        <Toolbar disableGutters>
+          <Typography
+            variant="h6"
+            noWrap
+            component="a"
+            href="/"
+            sx={{
+              mr: 2,
+              display: { xs: "none", md: "flex" },
+              fontFamily: "monospace",
+              fontWeight: 700,
+              color: "inherit",
+              textDecoration: "none",
             }}
           >
-            Copy To Clipboard
-          </Button>
-        </Box>
-      )}
-    </Box>
+            CutLink
+          </Typography>
+
+          <Box sx={{ flexGrow: 1, display: { xs: "flex", md: "none" } }}>
+            <IconButton
+              aria-label="account of current user"
+              aria-controls="menu-appbar"
+              aria-haspopup="true"
+              onClick={handleOpenNavMenu}
+              color="inherit"
+            >
+              <Tooltip title="Menu">
+                <MenuIcon fontSize="large" />
+              </Tooltip>
+            </IconButton>
+
+            <Box>
+              <Menu
+                id="menu-appbar"
+                anchorEl={anchorElNav}
+                anchorOrigin={{
+                  vertical: "bottom",
+                  horizontal: "left",
+                }}
+                keepMounted
+                transformOrigin={{
+                  vertical: "top",
+                  horizontal: "left",
+                }}
+                open={Boolean(anchorElNav)}
+                sx={{
+                  display: { xs: "block" },
+                }}
+              >
+                {pages.map((page) => (
+                  <MenuItem key={page} onClick={handleCloseNavMenu}>
+                    <Typography textAlign="center">{page}</Typography>
+                  </MenuItem>
+                ))}
+              </Menu>
+            </Box>
+          </Box>
+          <Typography
+            variant="h5"
+            noWrap
+            component="a"
+            href=""
+            sx={{
+              mr: 2,
+              display: { xs: "flex", md: "none" },
+              flexGrow: 1,
+              fontFamily: "monospace",
+              fontWeight: 700,
+              color: "inherit",
+              textDecoration: "none",
+            }}
+          >
+            CutLink
+          </Typography>
+          <Box sx={{ flexGrow: 1, display: { xs: "none", md: "flex" } }}>
+            {pages.map((page) => (
+              <Button
+                key={page}
+                onClick={handleCloseNavMenu}
+                sx={{ my: 1, color: "white", display: "block" }}
+              >
+                {page}
+              </Button>
+            ))}
+          </Box>
+
+          <Box sx={{ flexGrow: 0 }}>
+            <IconButton onClick={toggleMode} color="inherit">
+              {click ? (
+                <Tooltip title="Light Mode">
+                  <LightModeIcon fontSize="large" />
+                </Tooltip>
+              ) : (
+                <Tooltip title="Dark Mode">
+                  <DarkModeIcon fontSize="large" />
+                </Tooltip>
+              )}
+            </IconButton>
+          </Box>
+        </Toolbar>
+      </Container>
+    </AppBar>
   );
 };
-
-export default FullWidthTextField;
+export default ResponsiveAppBar;
