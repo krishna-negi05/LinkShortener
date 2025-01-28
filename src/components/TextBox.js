@@ -5,20 +5,13 @@ import Swal from "sweetalert2";
 import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
 import "./TextBox.css";
-//import ReCAPTCHA from "react-google-recaptcha";
 
 const FullWidthTextField = () => {
   const [url, setUrl] = useState("");
   const [btnText, setBtnText] = useState("Shorten");
 
-  const baseUrl = "https://api.shrtco.de/v2/shorten?";
-  const getUrl = `${baseUrl}url=${url}`;
-
-  //const [verified, setVerified] = useState(false);
-
-  // function onChange(value) {
-  //   //setVerified(true);
-  // }
+  const baseUrl = "https://kutt.it/api/v2/url/shorten";  // Kutt API endpoint
+  const apiKey = "0NSPhqR565usGHPVMAiiSAFgMDDZPE0jjOMF8ymf";  // Your Kutt API key
 
   const handleSubmit = (event) => {
     event.preventDefault();
@@ -27,14 +20,20 @@ const FullWidthTextField = () => {
       navigator.clipboard.writeText(url);
       setBtnText("Copied!");
       setUrl(url);
-    } else
+    } else {
+      // Make a POST request to Kutt API
       axios
-        .get(getUrl)
+        .post(baseUrl, {
+          target: url,  // The long URL you want to shorten
+        }, {
+          headers: {
+            'X-API-KEY': apiKey,  // Add your API key in the header
+          },
+        })
         .then((response) => {
           // handle success
-          setUrl(response.data.result.full_short_link);
+          setUrl(response.data.shortUrl);  // Get the shortened URL
           setBtnText("Copy To Clipboard");
-          // setVerified(false);
         })
         .catch(function (error) {
           // handle error
@@ -43,10 +42,11 @@ const FullWidthTextField = () => {
             title: "Oops...",
             text: "Invalid URL! Please check the URL and try again.",
           });
-          setUrl("");
-          // setVerified(false);
+          setUrl("");  // Reset URL if there's an error
         });
+    }
   };
+
   const handleChange = (e) => {
     setUrl(e.target.value);
     if (e.target.value !== url) {
@@ -76,7 +76,6 @@ const FullWidthTextField = () => {
           className="btn"
           onClick={handleSubmit}
           variant="contained"
-          // disabled={!verified}
           style={{
             borderRadius: 50,
             paddingTop: 8,
@@ -88,12 +87,6 @@ const FullWidthTextField = () => {
           {btnText}
         </Button>
       </Box>
-      {/* <Box className="recaptcha-box">
-      <ReCAPTCHA
-          sitekey="6Lc5GGYhAAAAAKWur2E8b4lWO7NXbzRsSHSPltHD"
-          onChange={onChange}
-        />
-      </Box> */}
     </Box>
   );
 };
