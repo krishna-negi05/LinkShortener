@@ -8,6 +8,7 @@ import "./TextBox.css";
 
 const FullWidthTextField = () => {
   const [url, setUrl] = useState("");
+  const [alias, setAlias] = useState("");  // New state to store the custom alias
   const [btnText, setBtnText] = useState("Shorten");
 
   const baseUrl = "https://kutt.it/api/v2/url/shorten";  // Kutt API endpoint
@@ -21,26 +22,45 @@ const FullWidthTextField = () => {
       setBtnText("Copied!");
       setUrl(url);
     } else {
+      // Ensure the URL starts with http:// or https://
+      if (!url.startsWith("http://") && !url.startsWith("https://")) {
+        Swal.fire({
+          icon: "error",
+          title: "Oops...",
+          text: "Please enter a valid URL that starts with 'http://' or 'https://'.",
+        });
+        setUrl("");
+        return;
+      }
+
+      // Prepare the payload for the API request
+      const requestData = {
+        target: url,
+      };
+
+      // Add custom alias if provided
+      if (alias) {
+        requestData.alias = alias;
+      }
+
       // Make a POST request to Kutt API
       axios
-        .post(baseUrl, {
-          target: url,  // The long URL you want to shorten
-        }, {
+        .post(baseUrl, requestData, {
           headers: {
             'X-API-KEY': apiKey,  // Add your API key in the header
           },
         })
         .then((response) => {
-          // handle success
+          // Handle success
           setUrl(response.data.shortUrl);  // Get the shortened URL
           setBtnText("Copy To Clipboard");
         })
         .catch(function (error) {
-          // handle error
+          // Handle error
           Swal.fire({
             icon: "error",
             title: "Oops...",
-            text: "Invalid URL! Please check the URL and try again.",
+            text: "Something went wrong. Please try again later.",
           });
           setUrl("");  // Reset URL if there's an error
         });
@@ -54,6 +74,10 @@ const FullWidthTextField = () => {
     }
   };
 
+  const handleAliasChange = (e) => {
+    setAlias(e.target.value);  // Handle custom alias input
+  };
+
   return (
     <Box className="text-box-container">
       <TextField
@@ -62,9 +86,24 @@ const FullWidthTextField = () => {
         id="fullWidth"
         value={url}
         onChange={handleChange}
-        placeholder="Paste long url and shorten it"
+        placeholder="Paste long URL and shorten it"
         size="small"
         helperText="Ex: http://example.com/"
+        sx={{
+          [`& fieldset`]: {
+            borderRadius: 50,
+          },
+        }}
+      />
+      <TextField
+        className="url-area"
+        fullWidth
+        id="alias"
+        value={alias}
+        onChange={handleAliasChange}
+        placeholder="Enter custom alias (optional)"
+        size="small"
+        helperText="Ex: example or custom-alias"
         sx={{
           [`& fieldset`]: {
             borderRadius: 50,
